@@ -78,7 +78,6 @@ observationSprat = {
 
 # FRODOspec example observation
 observationFrodo = {
-    'name': 'Test_Frodo',
     'instrument': 'Frodo',
     'exp_time_Blue': '120.0',  # Image exposure time for blue arm
     'exp_count_Blue': '3',     # Number of exposures for blue arm
