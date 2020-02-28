@@ -16,7 +16,7 @@ settings = {
 }
 
 target = {
-    'name': 'Vega',         # Target name, which will be first part of uid
+    'name': 'Vega',          # Target name, which will be first part of uid
     'RA': '18:36:56.336',    # Target ra 'HH:MM:SS.SS'
     'DEC': '+38:47:01.280',  # Target dec '+/-DD:MM:SS.SS'
 }
@@ -78,7 +78,6 @@ observationSprat = {
 
 # FRODOspec example observation
 observationFrodo = {
-    'name': 'Test_Frodo',
     'instrument': 'Frodo',
     'exp_time_Blue': '120.0',  # Image exposure time for blue arm
     'exp_count_Blue': '3',     # Number of exposures for blue arm
