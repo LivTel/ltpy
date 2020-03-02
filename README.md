@@ -109,7 +109,7 @@ target['RA'] = '08:22:31.66'
 observation['exp_time'] = '160'
 ```
 ### Sending observations
-Once the observation dictionary is populated, the observation is sent to the telescope using the `submit_observation()` method.
+Once the observation dictionary is populated, the observation is sent to the telescope using the `submit_observation()` method. 3 Arguments are passed, `target`, `constraints` and `observations`. The last argument is a tuple which can contain more than one observation of the target. This is used for multi instrument groups, or for two observations with different instrument settings. For a single instrument pass a single element tuple, e.g. `[observation]`.
 
 ```python
 uid, error = obs_object.submit_observation(target, constraints, [observation1, observation2])
