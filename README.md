@@ -115,7 +115,7 @@ Once the observation dictionary is populated, the observation is sent to the tel
 uid, error = obs_object.submit_observation(target, constraints, [observation1, observation2])
 ```
 
-This returns a  `uid` (Unique IDentifier) strong which is the observation `name` appended with the unix time of submission appended.
+This returns a  `uid` (Unique IDentifier) string which is the observation `name` appended with the unix time of submission appended.
 
 Also returned is an error string. The string is blank on success, but contains the error details if an error occurred.
 
