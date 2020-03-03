@@ -1,5 +1,4 @@
 import ltrtml
-import secret
 
 """
 example.py - Example dictionaries for sending observations to the Liverpool telescope
@@ -92,7 +91,7 @@ obs = ltrtml.LTObservation(settings)
 
 # Send observations to telescope, getting uid and error back.
 # Shown is a group with both IOO and Frodo observations
-uid, error = obs.submit_observation(target, constraints, [observationIOO, observationFrodo])
+uid, error = obs.submit_observation(target, constraints, [observationSprat])
 if error:
     print(error)
 else:
