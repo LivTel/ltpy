@@ -42,11 +42,11 @@ The user can create any number of `observation` dictionaries to enable multi ins
 
 The example code in [example.py](example.py) gives example dictionary structures with commented options for settings and observations for each of the RTML enabled instrument on the telescope.
 
-It also shows how to set up an LTObservation object, send and observation, check the list of `uids` and cancel an observation.
+It also shows how to set up an LTObservation object, send an observation, check the list of `uids` (Unique IDentifiers) and cancel an observation.
 
 
 ### Settings and connection
-The module creates an LTObservation object that is initiated with a settings dictionary. The settings can be requested for any active proposal on the Liverpool Telescope by contacting ltsupprt_astronomer@ljmu.ac.uk.
+The module creates an LTObservation object that is initiated with a settings dictionary. The settings can be requested for any active proposal on the Liverpool Telescope by contacting ltsupport_astronomer@ljmu.ac.uk.
 
 The settings dictionary should be structured as follows and the object initiated by passing the settings;
 ```python
@@ -72,7 +72,7 @@ Debug mode will save RTML requests and responses from the telescope to the local
 ### Creating `target`
 ```python
 target = {
-    'name': 'Vega',         # Target name, which will be first part of uid
+    'name': 'Vega',         # Target name, which will form first part of uid
     'RA': '18:36:56.336',    # Target ra 'HH:MM:SS.SS'
     'DEC': '+38:47:01.280',  # Target dec '+/-DD:MM:SS.SS'
 }
@@ -103,7 +103,7 @@ observation = {
 }
 ```
 
-All elements in the dictionaries are strings and need to be formatted as shown above. Dictionary elements can be addressed and set directly, i.e.
+**All values in the dictionaries are strings** and need to be formatted as shown above. Dictionary elements can be addressed and set directly, i.e.
 ```python
 target['RA'] = '08:22:31.66'
 observation['exp_time'] = '160'
