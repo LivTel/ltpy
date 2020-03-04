@@ -105,7 +105,9 @@ observation = {
 }
 ```
 
-**All values in the dictionaries are strings** and need to be formatted as shown above. Dictionary elements can be addressed and set directly, i.e.
+**NOTE: All values in the dictionaries are strings** and need to be formatted as shown above. 
+
+Dictionary elements can be addressed and set directly, i.e.
 ```python
 target['RA'] = '08:22:31.66'
 observation['exp_time'] = '160'
