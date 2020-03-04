@@ -5,7 +5,7 @@ This module allows a pythonic way to;
 * Submit observation groups to the Liverpool Telescope phase2 system
 * Cancel and delete observation groups
 
-For more information on RTML and the Liverpool Telescope please see (https://telescope.livjm.ac.uk/PropInst/RTML/)[https://telescope.livjm.ac.uk/PropInst/RTML/]
+For more information on RTML and the Liverpool Telescope please see [https://telescope.livjm.ac.uk/PropInst/RTML/](https://telescope.livjm.ac.uk/PropInst/RTML/)
 
 ### Features
 * Supported instruments;
