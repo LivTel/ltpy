@@ -1,12 +1,15 @@
-import suds
-from suds.client import Client
-from lxml import etree
 import time
 import pickle
 import os
+import suds
+from suds.client import Client
+from lxml import etree
 
 
 class LTObservation():
+    """
+    LT Observation Class to create and send Observation Groups to the Liverpool telescope
+    """
 
     def __init__(self, settings):
         """
@@ -18,9 +21,9 @@ class LTObservation():
                 print('Please enter your: ' + k)
                 exit()
 
-    def _build_prolog(self, name):
+    def _build_prolog(self):
         """
-        Function to create the RTML etree and set the headers.
+        Creates the RTML etree and set the headers.
         Returns the Top level element for addition by other functions
         """
         LT_XML_NS = 'http://www.rtml.org/v3.1a'
@@ -35,7 +38,7 @@ class LTObservation():
                              {schemaLocation: LT_SCHEMA_LOCATION},
                              xmlns=LT_XML_NS,
                              mode='request',
-                             uid=name + '_' + format(str(int(time.time()))),
+                             uid=self.settings['prefix'] + '_' + format(str(int(time.time()))),
                              version='3.1a',
                              nsmap=namespaces)
 
@@ -222,23 +225,19 @@ class LTObservation():
         etree.SubElement(date_const, 'DateTimeEnd', system='UT', value=end)
         return [airmass_const, sky_const, seeing_const, photom_const, date_const]
 
-    def submit_observation(self, target, constraints, observations):
+    def submit_observation(self, observations, constraints):
         """
         send the payload to the telescope and informs the user if it fails or is successful
         """
 
-        empty = (target.items(),
-                 constraints.items())
-        for i in range(0, 2):
-            for k, v in empty[i]:
-                if v == '':
-                    return ['fail', 'No value for ' + k]
+        for k, v in constraints.items():
+            if v == '':
+                return ['fail', 'No value for ' + k]
 
-        payload = self._build_prolog(target['name'])
+        payload = self._build_prolog()
         self._build_project(payload)
 
         for observation in observations:
-            observation['target'] = target
             observation['constraints'] = constraints
             if observation['instrument'] == 'IO:O':
                 self._build_inst_schedule_IOO(observation, payload)
@@ -275,18 +274,18 @@ class LTObservation():
         if mode == 'reject':
             return ['fail', 'This submission has been rejected']
         elif mode == 'confirm':
-            if os.path.exists("LT_uids"):
-                with open("LT_uids", "rb") as rp:
+            if os.path.exists("LT_uids.pkl"):
+                with open("LT_uids.pkl", "rb") as rp:
                     uids = pickle.load(rp)
             else:
                 uids = []
             uids.append(uid)
-            with open("LT_uids", "wb") as wp:
+            with open("LT_uids.pkl", "wb") as wp:
                 pickle.dump(uids, wp)
         return (uid, '')
 
     def get_uids(self):
-        with open("LT_uids", "rb") as ruids:
+        with open("LT_uids.pkl", "rb") as ruids:
             uids = pickle.load(ruids)
             return uids
 
@@ -302,7 +301,7 @@ class LTObservation():
             'xsi': LT_XSI_NS,
         }
         schemaLocation = etree.QName(LT_XSI_NS, 'schemaLocation')
-        with open("LT_uids", "rb") as rp:
+        with open("LT_uids.pkl", "rb") as rp:
             all_uids = pickle.load(rp)
         cancel_payload = etree.Element('RTML',
                                        {schemaLocation: LT_SCHEMA_LOCATION},
@@ -344,6 +343,6 @@ class LTObservation():
         elif mode == 'confirm':
             if uid in all_uids:
                 all_uids.remove(uid)
-                with open("LT_uids", "wb") as cancelled:
+                with open("LT_uids.pkl", "wb") as cancelled:
                     pickle.dump(all_uids, cancelled)
             return []

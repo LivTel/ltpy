@@ -8,22 +8,30 @@ example.py - Example dictionaries for sending observations to the Liverpool tele
 settings = {
     'username': '',  # RTML_username
     'password': '',  # RTML_password
-    'project': '',   # RTML_project name
+    'project': '',   # RTML_proposal name
+    'prefix': '',    # Prefix to Group UID
     'LT_HOST': '',   # IP used to connect to the LT
     'LT_PORT': '',   # Port used to connect to the LT
     'DEBUG': False,  # Store all RTML responses for debugging, [True, False]
+
 }
 
-target = {
-    'name': 'Vega',          # Target name, which will be first part of uid
+target1 = {
+    'name': 'Vega',          # Target name
     'RA': '18:36:56.336',    # Target ra 'HH:MM:SS.SS'
     'DEC': '+38:47:01.280',  # Target dec '+/-DD:MM:SS.SS'
+}
+
+target2 = {
+    'name': 'Deneb',         # Target name
+    'RA': '20:41:25.915',    # Target ra 'HH:MM:SS.SS'
+    'DEC': '+45:16:49.220',  # Target dec '+/-DD:MM:SS.SS'
 }
 
 constraints = {
     'air_mass': '2.0',            # Maximum allowable Airmass Range 1 --> 3
     'sky_bright': '2.0',          # Maximum allowable Sky Brightness, Dark + X magnitudes
-    'seeing': '1.2',              # Maximum allowable FWHM seeing
+    'seeing': '1.2',              # Maximum allowable FWHM seeing in arcsec
     'photometric': 'yes',         # Photometric conditions, ['yes', 'no']
     'start_date': '2020-02-18',   # Start Date 'YYYY-MM-DD'
     'start_time': '18:00:00.00',  # Start Time 'HH:MM:SS.SS'
@@ -31,13 +39,14 @@ constraints = {
     'end_time': '00:00:00.00',    # End Time 'HH:MM:SS.SS'
 }
 
-# IOO Example observation
+# IOO Example observation with target1
 observationIOO = {
     'instrument': 'IO:O',
+    'target': target1,
     'filters': {'R': {'exp_time': '60',
                       'exp_count': '3',
                       },
-                'U': {'exp_time': '120',
+                'U': {'exp_time': '45',
                       'exp_count': '3',
                       },
                 },   # Select the filter/s for the IO:O observation,
@@ -45,7 +54,7 @@ observationIOO = {
     'binning': '2',  # Binning '2' recommended. ['1', '2']
 }
 
-# Tuple of valid IOO filters;
+# Tuple of valid IOO filters for reference;
 ioo_filters = ['U',
                'R',
                'G',
@@ -59,24 +68,27 @@ ioo_filters = ['U',
                'Halpha6755',
                'Halpha6822']
 
-# IO:I example observation
+# IO:I example observation with target1
 observationIOI = {
+    'target': target1,
     'instrument': 'IO:I',  # Single H-band filter instrument
     'exp_time': '120.0',   # Image exposure time for target
     'exp_count': '5',      # Number of target images needed
 }
 
 
-# Sprat example observation
+# Sprat example observation with target1
 observationSprat = {
+    'target': target1,
     'instrument': 'Sprat',
     'exp_time': '120.0',  # Image exposure time for target
     'exp_count': '3',     # Number of target images needed
     'grating': 'blue',    # Grating colour ['blue','red']
 }
 
-# FRODOspec example observation
+# FRODOspec example observation with target1
 observationFrodo = {
+    'target': target1,
     'instrument': 'Frodo',
     'exp_time_Blue': '120.0',  # Image exposure time for blue arm
     'exp_count_Blue': '3',     # Number of exposures for blue arm
@@ -90,8 +102,8 @@ observationFrodo = {
 obs = ltrtml.LTObservation(settings)
 
 # Send observations to telescope, getting uid and error back.
-# Shown is a group with both IOO and Frodo observations
-uid, error = obs.submit_observation(target, constraints, [observationSprat])
+# Shown is a group with a single IOO observation.
+uid, error = obs.submit_observation([observationIOO], constraints)
 if error:
     print(error)
 else:

@@ -13,7 +13,8 @@ For more information on RTML and the Liverpool Telescope please see [https://tel
   * IO:I
   * Sprat
   * FRODOSpec
-* Single and multiple instrument groups (**apart from SPRAT**)
+* Multiple Targets and Observations in Group
+* Single Instrument Groups only Supported at present
 * Multiband observations with IO:O
 
 
@@ -30,9 +31,9 @@ pip install -r requirements.txt
 
 The structure of using ltrtml module is by creating 4 dictionary structures;
 * `settings` -  holds RTML login, proposal and IP connection settings
-* `target` - holds target name, RA and DEC.
 * `constraints` - holds observing and timing constraints.
-* `observation` - holds instrument settings and exposures.
+* `target` - holds target name, RA and DEC. Multiple targets allowed
+* `observation` - holds instrument settings, target and exposures. Multiple observations allowed.
 
 The user can create any number of `observation` dictionaries to enable multi instrument groups or groups with multiple instrument setups.
 
@@ -58,6 +59,7 @@ settings = {
     'username': '',  # RTML_username
     'password': '',  # RTML_password
     'project': '',   # RTML_project name
+    'prefix': '',    # Prefix to Group uid
     'LT_HOST': '',   # IP used to connect to the LT
     'LT_PORT': '',   # Port used to connect to the LT
     'DEBUG': False,  # Store all RTML responses for debugging, [True, False]
@@ -71,21 +73,32 @@ obs_object = ltrtml.LTObservation(settings)
 Debug mode will save RTML requests and responses from the telescope to the local directory. This is used for diagnosing errors in the connection. To turn on set the dictionary element to `True`
 
 
-### Creating `target`
+### Creating `target` dictionaries
+More than one target can be observed within the group. This is useful for photometric or spectroscopic standards. These `target` dictionaries can have any name. RA AND DEC values **must** be strings formatted in the way shown. DEC **must** have a +/- sign prepending the value.
+
 ```python
-target = {
-    'name': 'Vega',         # Target name, which will form first part of uid
+target1 = {
+    'name': 'Vega',         # Target name
     'RA': '18:36:56.336',    # Target ra 'HH:MM:SS.SS'
     'DEC': '+38:47:01.280',  # Target dec '+/-DD:MM:SS.SS'
 }
+
+target2 = {
+    'name': 'Deneb',         # Target name
+    'RA': '20:41:25.915',    # Target ra 'HH:MM:SS.SS'
+    'DEC': '+45:16:49.220',  # Target dec '+/-DD:MM:SS.SS'
+}
+
 ```
 
 ### Creating `constraints`
+Contraints are appiled to all observations within the group. They are set up as below. All values in must be strings and formatted as shown below.
+
 ```python
 constraints = {
     'air_mass': '2.0',            # Maximum allowable Airmass Range 1 --> 3
     'sky_bright': '1.0',          # Maximum allowable Sky Brightness, Dark + X magnitudes
-    'seeing': '1.2',              # Maximum allowable FWHM seeing
+    'seeing': '1.2',              # Maximum allowable FWHM seeing in arcsec
     'photometric': 'yes',         # Photometric conditions, ['yes', 'no']
     'start_date': '2020-02-18',   # Start Date 'YYYY-MM-DD'
     'start_time': '18:00:00.00',  # Start Time 'HH:MM:SS.SS'
@@ -95,33 +108,35 @@ constraints = {
 ```
 
 ### Creating `observations`
+Observations specify one of the set up targets. They then specify the instrument and configuration, along with details of the exposure.
 
 ```python
 observation = {
+    'target': target1,
     'instrument': 'Sprat',
-    'exp_time': '120.0',  # Image exposure time for target
-    'exp_count': '3',     # Number of target images needed
+    'exp_time': '120',  # Integration time (s)
+    'exp_count': '3',     # Number of Integrations
     'grating': 'blue',    # Grating colour ['blue','red']
 }
 ```
 
-**NOTE: All values in the dictionaries are strings** and need to be formatted as shown above. 
+**NOTE: All values in the dictionaries are strings** and need to be formatted as shown above.
 
 Dictionary elements can be addressed and set directly, i.e.
 ```python
-target['RA'] = '08:22:31.66'
+target1['RA'] = '08:22:31.66'
 observation['exp_time'] = '160'
 ```
 ### Sending observations
-Once the observation dictionary is populated, the observation is sent to the telescope using the `submit_observation()` method. 3 Arguments are passed, `target`, `constraints` and `observations`. The last argument is a tuple which can contain more than one observation of the target. This is used for multi instrument groups, or for two observations with different instrument settings. For a single instrument pass a single element tuple, e.g. `[observation]`.
+Once the observation dictionary is populated, the observation is sent to the telescope using the `submit_observation()` method. 3 Arguments are passed, `target`, `constraints` and `observations`. The last argument is a tuple which can contain more than one observation. This is used for multiple target groups, or multiple observations with different instrument settings. For a single observation pass a single element tuple, e.g. `[observation]`.
 
 ```python
-uid, error = obs_object.submit_observation(target, constraints, [observation1, observation2])
+uid, error = obs_object.submit_observation([observation1, observation2], constraints)
 ```
 
-This returns a  `uid` (Unique IDentifier) string which is the observation `name` appended with the unix time of submission appended.
+This returns a  `uid` (Unique IDentifier) string which is the `settings['prefix']` string with the unix time of submission appended. This `uid` will be the group name when viewed using the Phase2 UI tool.
 
-Also returned is an error string. The string is blank on success, but contains the error details if an error occurred.
+Also returned is an error string. The string is blank on success, but contains the error details if an error has occurred.
 
 ### Getting list of obervation uids
 The module stores the succesfully submitted observation uids in a pickled file.
