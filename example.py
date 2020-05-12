@@ -4,7 +4,7 @@ import ltrtml
 example.py - Example dictionaries for sending observations to the Liverpool telescope
 """
 
-# RTML Settings
+# Settings Dictionary
 settings = {
     'username': '',  # RTML_username
     'password': '',  # RTML_password
@@ -13,7 +13,7 @@ settings = {
     'LT_HOST': '',   # IP used to connect to the LT
     'LT_PORT': '',   # Port used to connect to the LT
     'DEBUG': False,  # Store all RTML responses for debugging, [True, False]
-
+    'PKLFILE': '',   # Name of pickle file for storing observations
 }
 
 target1 = {
@@ -35,7 +35,7 @@ constraints = {
     'photometric': 'yes',         # Photometric conditions, ['yes', 'no']
     'start_date': '2020-02-18',   # Start Date 'YYYY-MM-DD'
     'start_time': '18:00:00.00',  # Start Time 'HH:MM:SS.SS'
-    'end_date': '2020-02-280',    # End Date 'YYYY-MM-DD'
+    'end_date': '2020-02-28',     # End Date 'YYYY-MM-DD'
     'end_time': '00:00:00.00',    # End Time 'HH:MM:SS.SS'
 }
 
@@ -99,11 +99,11 @@ observationFrodo = {
 }
 
 # Create observation object
-obs = ltrtml.LTObservation(settings)
+obs = ltrtml.LTObs(settings)
 
 # Send observations to telescope, getting uid and error back.
 # Shown is a group with a single IOO observation.
-uid, error = obs.submit_observation([observationIOO], constraints)
+uid, error = obs.submit_group([observationIOO], constraints)
 if error:
     print(error)
 else:
@@ -111,7 +111,7 @@ else:
 
 
 # Cancel an observation
-error = obs.cancel_observation(uid)
+error = obs.cancel_group(uid)
 if error:
     print(error)
 else:
@@ -122,4 +122,4 @@ print(obs.get_uids())
 
 # Cancel all observations in the proposal that have been sent via ltrtml
 for uid in obs.get_uids():
-    obs.cancel_observation(uid)
+    obs.cancel_group(uid)

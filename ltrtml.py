@@ -6,16 +6,19 @@ from suds.client import Client
 from lxml import etree
 
 
-class LTObservation():
+class LTObs():
     """
     LT Observation Class to create and send Observation Groups to the Liverpool telescope
+    Using and RTML Payload over a SOAP connection
     """
 
     def __init__(self, settings):
         """
-        Checks if there is any missing information within the settings dict
+        Loads Settings and checks for any missing
+        information within the settings dict
         """
         self.settings = settings
+        self.pickle = settings['PKLFILE'] + '.pkl'
         for k, v in self.settings.items():
             if v == '':
                 print('Please enter your: ' + k)
@@ -23,8 +26,8 @@ class LTObservation():
 
     def _build_prolog(self):
         """
-        Creates the RTML etree and set the headers.
-        Returns the Top level element for addition by other functions
+        Creates the RTML etree and set the headers
+        Returns the Top level etree element for addition by other functions
         """
         LT_XML_NS = 'http://www.rtml.org/v3.1a'
         LT_XSI_NS = 'http://www.w3.org/2001/XMLSchema-instance'
@@ -225,7 +228,7 @@ class LTObservation():
         etree.SubElement(date_const, 'DateTimeEnd', system='UT', value=end)
         return [airmass_const, sky_const, seeing_const, photom_const, date_const]
 
-    def submit_observation(self, observations, constraints):
+    def submit_group(self, observations, constraints):
         """
         send the payload to the telescope and informs the user if it fails or is successful
         """
@@ -274,25 +277,27 @@ class LTObservation():
         if mode == 'reject':
             return ['fail', 'This submission has been rejected']
         elif mode == 'confirm':
-            if os.path.exists("LT_uids.pkl"):
-                with open("LT_uids.pkl", "rb") as rp:
+            if os.path.exists(self.pickle):
+                with open(self.pickle, "rb") as rp:
                     uids = pickle.load(rp)
             else:
                 uids = []
             uids.append(uid)
-            with open("LT_uids.pkl", "wb") as wp:
+            with open(self.pickle, "wb") as wp:
                 pickle.dump(uids, wp)
         return (uid, '')
 
     def get_uids(self):
-        with open("LT_uids.pkl", "rb") as ruids:
-            uids = pickle.load(ruids)
+        """
+        Returns a tuple of uids submitted to the telescope
+        """
+        with open(self.pickle, "rb") as uids:
+            uids = pickle.load(uids)
             return uids
 
-    def cancel_observation(self, uid):
+    def cancel_group(self, uid):
         """
         Deletes observation with known uid from the telescope.
-        The command will delete as many observations as there are numbered uids in a list
         """
         LT_XSI_NS = 'http://www.w3.org/2001/XMLSchema-instance'
         LT_SCHEMA_LOCATION = 'http://www.rtml.org/v3.1a http://telescope.livjm.ac.uk/rtml/RTML-nightly.xsd'
@@ -301,7 +306,7 @@ class LTObservation():
             'xsi': LT_XSI_NS,
         }
         schemaLocation = etree.QName(LT_XSI_NS, 'schemaLocation')
-        with open("LT_uids.pkl", "rb") as rp:
+        with open(self.pickle, "rb") as rp:
             all_uids = pickle.load(rp)
         cancel_payload = etree.Element('RTML',
                                        {schemaLocation: LT_SCHEMA_LOCATION},
