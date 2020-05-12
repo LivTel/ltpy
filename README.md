@@ -66,7 +66,7 @@ settings = {
 }
 
 
-obs_object = ltrtml.LTObservation(settings)
+obs_object = ltrtml.LTObs(settings)
 ```
 
 #### Debug mode
@@ -131,7 +131,7 @@ observation['exp_time'] = '160'
 Once the observation dictionary is populated, the observation is sent to the telescope using the `submit_observation()` method. 3 Arguments are passed, `target`, `constraints` and `observations`. The last argument is a tuple which can contain more than one observation. This is used for multiple target groups, or multiple observations with different instrument settings. For a single observation pass a single element tuple, e.g. `[observation]`.
 
 ```python
-uid, error = obs_object.submit_observation([observation1, observation2], constraints)
+uid, error = obs_object.submit_group([observation1, observation2], constraints)
 ```
 
 This returns a  `uid` (Unique IDentifier) string which is the `settings['prefix']` string with the unix time of submission appended. This `uid` will be the group name when viewed using the Phase2 UI tool.
@@ -151,7 +151,7 @@ uids = obs_object.getuids()
 Observations can be cancelled using the `uid` string returned when submitting an observation.
 
 ```python
-error = obs_object.cancel_observation(uids)
+error = obs_object.cancel_group(uids)
 ```
 Success returns a blank error string. If the cancel fails then the error string gives details of the failure.
 
