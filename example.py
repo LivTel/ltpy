@@ -8,13 +8,17 @@ example.py - Example dictionaries for sending observations to the Liverpool tele
 settings = {
     'username': '',  # RTML_username
     'password': '',  # RTML_password
-    'project': '',   # RTML_proposal name
+    'tag': '',       # TAG of Proposal [, 'JMU', 'PATT', 'CAT', 'OPT']
+    'proposal': '',  # RTML_proposal name
     'prefix': '',    # Prefix to Group UID
     'LT_HOST': '',   # IP used to connect to the LT
     'LT_PORT': '',   # Port used to connect to the LT
+    'PKLFILE': '',   # Name of pickle file for storing observation information
+    'DATADIR': '',   # Path to the directory for storing data.
     'DEBUG': False,  # Store all RTML responses for debugging, [True, False]
-    'PKLFILE': '',   # Name of pickle file for storing observations
 }
+
+# Target Dictionary
 
 target1 = {
     'name': 'Vega',          # Target name
@@ -28,6 +32,7 @@ target2 = {
     'DEC': '+45:16:49.220',  # Target dec '+/-DD:MM:SS.SS'
 }
 
+# Constraints Dictionary
 constraints = {
     'air_mass': '2.0',            # Maximum allowable Airmass Range 1 --> 3
     'sky_bright': '2.0',          # Maximum allowable Sky Brightness, Dark + X magnitudes
@@ -109,6 +114,8 @@ if error:
 else:
     print(uid, ' sucessfully sent to telescope')
 
+# List current uids which have been submitted to the telescope
+print(obs.get_uids())
 
 # Cancel an observation
 error = obs.cancel_group(uid)
@@ -117,8 +124,7 @@ if error:
 else:
     print('Successfully deleted observation ', uid)
 
-# List current uids which have been submitted to the telescope
-print(obs.get_uids())
+
 
 # Cancel all observations in the proposal that have been sent via ltrtml
 for uid in obs.get_uids():

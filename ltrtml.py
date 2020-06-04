@@ -1,9 +1,16 @@
-import time
-import pickle
+from lxml import etree
 import os
+import pickle
+import requests
+from requests.auth import HTTPBasicAuth
 import suds
 from suds.client import Client
-from lxml import etree
+import time
+import xmltodict as xd
+
+
+import code
+import json
 
 
 class LTObs():
@@ -18,7 +25,7 @@ class LTObs():
         information within the settings dict
         """
         self.settings = settings
-        self.pickle = settings['PKLFILE'] + '.pkl'
+        self.pickleFile = settings['PKLFILE'] + '.pkl'
         for k, v in self.settings.items():
             if v == '':
                 print('Please enter your: ' + k)
@@ -49,7 +56,7 @@ class LTObs():
         """
         Adds the details of user, proposal to the payload
         """
-        project = etree.Element('Project', ProjectID=self.settings['project'])
+        project = etree.Element('Project', ProjectID=self.settings['proposal'])
         contact = etree.SubElement(project, 'Contact')
         etree.SubElement(contact, 'Username').text = self.settings['username']
         etree.SubElement(contact, 'Name').text = ''
@@ -264,7 +271,7 @@ class LTObs():
             # Send payload, and receive response string, removing the encoding tag which causes issue with lxml parsing
             response = client.service.handle_rtml(full_payload).replace('encoding="ISO-8859-1"', '')
         except suds.WebFault:
-            return ['fail', 'Error with connection to telescope']
+            return ['fail', 'Connection Error: Check credentials?']
 
         response_rtml = etree.fromstring(response)
         mode = response_rtml.get('mode')
@@ -275,15 +282,15 @@ class LTObs():
             f.write(response)
             f.close()
         if mode == 'reject':
-            return ['fail', 'This submission has been rejected']
+            return ['fail', 'Rejected Submission']
         elif mode == 'confirm':
-            if os.path.exists(self.pickle):
-                with open(self.pickle, "rb") as rp:
+            if os.path.exists(self.pickleFile):
+                with open(self.pickleFile, "rb") as rp:
                     uids = pickle.load(rp)
             else:
                 uids = []
             uids.append(uid)
-            with open(self.pickle, "wb") as wp:
+            with open(self.pickleFile, "wb") as wp:
                 pickle.dump(uids, wp)
         return (uid, '')
 
@@ -315,7 +322,7 @@ class LTObs():
                                        version='3.1a',
                                        nsmap=namespaces
                                        )
-        project = etree.SubElement(cancel_payload, 'Project', ProjectID=self.settings['project'])
+        project = etree.SubElement(cancel_payload, 'Project', ProjectID=self.settings['proposal'])
         contact = etree.SubElement(project, 'Contact')
         etree.SubElement(contact, 'Username').text = self.settings['username']
         etree.SubElement(contact, 'Name').text = ''
@@ -351,3 +358,107 @@ class LTObs():
                 with open("LT_uids.pkl", "wb") as cancelled:
                     pickle.dump(all_uids, cancelled)
             return []
+
+
+class LTDat():
+    """
+    Class for retreiving LT Data from the Data archive
+    Uses the OC_Search HTTP / XML interface of the LT Data Archive
+    """
+
+    # URLBASE is the endpoint of the request
+    URLBASE = 'https://telescope.livjm.ac.uk/cgi-bin/oc_search_dma'
+
+
+    def __init__(self, settings):
+        """
+        Loads Settings and checks for any missing
+        information within the settings dict
+        """
+        self.settings = settings
+        self.pickle = settings['PKLFILE'] + '.pkl'
+        for k, v in self.settings.items():
+            if v == '':
+                print('Please enter your: ' + k)
+                exit()
+
+    def make_request(self, uid):
+        """
+        Make request using the user credentals to the DataArchive
+        Return a dictionary of the XML response
+        """
+
+        request = self.URLBASE + '?' \
+                  + 'op-centre=' + self.settings['tag'] \
+                  + '&user-id=' + self.settings['username'] \
+                  + '&proposal-id=' + self.settings['proposal'] \
+                  + '&group-id=' + uid
+        try:
+            response = requests.get(request)
+        except:
+            return ['fail', 'Rejected data Archive Request']
+        return xd.parse(response.text, dict_constructor=dict)['archive-reply']
+
+
+    def data_ready(self, uid):
+        """
+        Check if data are available
+        Return Boolean
+        """
+
+        dict = self.make_request(uid)
+        if dict['number-obs'] == '0':
+            return False
+        else:
+            return True
+
+
+
+    def download_data(self, uid):
+        """
+        Check if data is available and if so download
+        """
+
+        def getFilename_fromCd(cd):
+            """
+            Get filename from content-disposition
+            """
+            if not cd:
+                return None
+            fname = re.findall('filename=(.+)', cd)
+            if len(fname) == 0:
+                return None
+            return fname[0]
+
+        dict = self.make_request(uid)
+
+        if dict['number-obs'] == '0':
+            return ['fail', 'No Data available']
+
+        elif dict['number-obs'] == '1':
+            # Nest the single observation one level deeper in a single element tuple.
+            # This is to match the structure of multi observation groups
+            dict['observation'] = [dict['observation'],]
+
+        for observation in dict['observation']:
+            print(observation['file-jpg']['#text'])
+            r = requests.get(observation['file-jpg']['#text']),# auth=('eng', 'ng@teng'))
+            filename = observation['expid'] + '.jpg'
+            print(filename)
+            open('test.jpg', 'wb').write(r.content)
+            print(observation['file-hfit']['#text'])
+        return
+
+
+
+
+
+    def test_request(self, uid):
+        """
+        Test function for development
+        """
+
+        dict = self.make_request(uid)
+        print(json.dumps(dict, indent=4))
+        #code.interact(local=locals())
+        return
