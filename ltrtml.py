@@ -7,9 +7,6 @@ import suds
 from suds.client import Client
 import time
 import xmltodict as xd
-
-
-import code
 import json
 
 
@@ -369,7 +366,6 @@ class LTDat():
     # URLBASE is the endpoint of the request
     URLBASE = 'https://telescope.livjm.ac.uk/cgi-bin/oc_search_dma'
 
-
     def __init__(self, settings):
         """
         Loads Settings and checks for any missing
@@ -387,12 +383,11 @@ class LTDat():
         Make request using the user credentals to the DataArchive
         Return a dictionary of the XML response
         """
-
-        request = self.URLBASE + '?' \
-                  + 'op-centre=' + self.settings['tag'] \
-                  + '&user-id=' + self.settings['username'] \
-                  + '&proposal-id=' + self.settings['proposal'] \
-                  + '&group-id=' + uid
+        request = (self.URLBASE + '?'
+                  + 'op-centre=' + self.settings['tag']
+                  + '&user-id=' + self.settings['username']
+                  + '&proposal-id=' + self.settings['proposal']
+                  + '&group-id=' + uid)
         try:
             response = requests.get(request)
         except:
@@ -405,20 +400,16 @@ class LTDat():
         Check if data are available
         Return Boolean
         """
-
         dict = self.make_request(uid)
         if dict['number-obs'] == '0':
             return False
         else:
             return True
 
-
-
     def download_data(self, uid):
         """
         Check if data is available and if so download
         """
-
         def getFilename_fromCd(cd):
             """
             Get filename from content-disposition
@@ -442,16 +433,12 @@ class LTDat():
 
         for observation in dict['observation']:
             print(observation['file-jpg']['#text'])
-            r = requests.get(observation['file-jpg']['#text']),# auth=('eng', 'ng@teng'))
+            r = requests.get(observation['file-jpg']['#text']),  #auth=('eng', 'ng@teng'))
             filename = observation['expid'] + '.jpg'
             print(filename)
             open('test.jpg', 'wb').write(r.content)
             print(observation['file-hfit']['#text'])
         return
-
-
-
-
 
     def test_request(self, uid):
         """
@@ -460,5 +447,4 @@ class LTDat():
 
         dict = self.make_request(uid)
         print(json.dumps(dict, indent=4))
-        #code.interact(local=locals())
         return
