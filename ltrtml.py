@@ -6,6 +6,7 @@ from requests.auth import HTTPBasicAuth
 import suds
 from suds.client import Client
 import time
+import logging
 import xmltodict as xd
 import json
 
@@ -385,7 +386,7 @@ class LTDat():
         """
         request = (self.URLBASE + '?'
                   + 'op-centre=' + self.settings['tag']
-                  + '&user-id=' + self.settings['username']
+                  + '&user-id=' + self.settings['datauser']
                   + '&proposal-id=' + self.settings['proposal']
                   + '&group-id=' + uid)
         try:
@@ -410,17 +411,6 @@ class LTDat():
         """
         Check if data is available and if so download
         """
-        def getFilename_fromCd(cd):
-            """
-            Get filename from content-disposition
-            """
-            if not cd:
-                return None
-            fname = re.findall('filename=(.+)', cd)
-            if len(fname) == 0:
-                return None
-            return fname[0]
-
         dict = self.make_request(uid)
 
         if dict['number-obs'] == '0':
@@ -433,11 +423,20 @@ class LTDat():
 
         for observation in dict['observation']:
             print(observation['file-jpg']['#text'])
-            r = requests.get(observation['file-jpg']['#text']),  #auth=('eng', 'ng@teng'))
+            #r = requests.get(observation['file-jpg']['#text'],  auth=('eng', 'ng@teng'))
+
+            """
             filename = observation['expid'] + '.jpg'
             print(filename)
             open('test.jpg', 'wb').write(r.content)
             print(observation['file-hfit']['#text'])
+            """
+
+            r = requests.get(observation['file-hfit']['#text'],  auth=('eng', 'ng@teng'))
+            filename = observation['expid'] + '.fits'
+            print(filename)
+            open(filename, 'wb').write(r.content)
+
         return
 
     def test_request(self, uid):
