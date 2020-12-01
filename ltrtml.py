@@ -365,7 +365,7 @@ class LTDat():
     """
 
     # URLBASE is the endpoint of the request
-    URLBASE = 'https://telescope.livjm.ac.uk/cgi-bin/oc_search_dma'
+    URLBASE = 'https://telescope.livjm.ac.uk/cgi-bin/oc_search_sci'
 
     def __init__(self, settings):
         """
@@ -422,28 +422,9 @@ class LTDat():
             dict['observation'] = [dict['observation'],]
 
         for observation in dict['observation']:
-            print(observation['file-jpg']['#text'])
-            #r = requests.get(observation['file-jpg']['#text'],  auth=('eng', 'ng@teng'))
+            r = requests.get(observation['file-hfit']['#text'],
+                auth=(self.settings['proposal'], self.settings['datapass']))
 
-            """
-            filename = observation['expid'] + '.jpg'
-            print(filename)
-            open('test.jpg', 'wb').write(r.content)
-            print(observation['file-hfit']['#text'])
-            """
-
-            r = requests.get(observation['file-hfit']['#text'],  auth=('eng', 'ng@teng'))
             filename = observation['expid'] + '.fits'
-            print(filename)
             open(filename, 'wb').write(r.content)
-
-        return
-
-    def test_request(self, uid):
-        """
-        Test function for development
-        """
-
-        dict = self.make_request(uid)
-        print(json.dumps(dict, indent=4))
         return
