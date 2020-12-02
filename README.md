@@ -13,9 +13,10 @@ For more information on RTML and the Liverpool Telescope please see [https://tel
   * IO:I
   * Sprat
   * FRODOSpec
+  * Moptop
 * Multiple Targets and Observations in Group
 * Single Instrument Groups only Supported at present
-* Multiband observations with IO:O
+* Multiband observations with IO:O and Moptop
 
 
 ## Dependencies
