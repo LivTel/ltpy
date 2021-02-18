@@ -48,8 +48,8 @@ constraints = {
 observationIOO = {
     'instrument': 'IO:O',
     'target': target1,
-    'filters': {'R': {'exp_time': '60',
-                      'exp_count': '3',
+    'filters': {'R': {'exp_time': '60',  # Exposure time in seconds
+                      'exp_count': '3',  # Number of exposures (multrun)
                       },
                 'U': {'exp_time': '45',
                       'exp_count': '3',
@@ -72,6 +72,29 @@ ioo_filters = ['U',
                'Halpha6705',
                'Halpha6755',
                'Halpha6822']
+
+
+
+# Moptop Example observation with target1
+# See https://telescope.livjm.ac.uk/TelInst/Inst/MOPTOP/
+observationMoptop = {
+    'instrument': 'Moptop',
+    'target': target1,
+    'filters': {'V': {'exp_time': '300',    # Exposure time in seconds
+                      'rot_speed': 'slow',  # Rotor speed, ['fast', 'slow']
+                      },
+                'R': {'exp_time': '90',
+                      'rot_speed': 'fast',
+                      },
+                },
+}
+
+# Tuple of valid Moptop filters for reference;
+mop_filters = ['B',
+               'V',
+               'R',
+               'I',
+               'L']
 
 # IO:I example observation with target1
 observationIOI = {

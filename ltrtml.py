@@ -56,7 +56,7 @@ class LTObs():
         """
         project = etree.Element('Project', ProjectID=self.settings['proposal'])
         contact = etree.SubElement(project, 'Contact')
-        etree.SubElement(contact, 'Username').text = self.settings['username']
+        etree.SubElement(contact, 'Username').text = self.settings['rtmluser']
         etree.SubElement(contact, 'Name').text = ''
         payload.append(project)
 
@@ -142,6 +142,38 @@ class LTObs():
                 etree.SubElement(binning, 'X', units='pixels').text = observation['binning']
                 etree.SubElement(binning, 'Y', units='pixels').text = observation['binning']
                 exposure = etree.SubElement(schedule, 'Exposure', count=observation['filters'][filter]['exp_count'])
+                etree.SubElement(exposure, 'Value', units='seconds'). text = observation['filters'][filter]['exp_time']
+                schedule.append(self._build_target(target))
+                for const in self._build_constraints(constraints):
+                    schedule.append(const)
+                payload.append(schedule)
+            else:
+                print('selected filter/s not available for IO:O.')
+                print('Please select a filter from the provided list.')
+                print(self.filters)
+                exit()
+
+    def _build_inst_schedule_Moptop(self, observation, payload):
+        """
+        Builds the schedule with the target and constraints attached to be sent to
+        the LT for use of the multi-filter IO:O instrument
+        """
+        self.filters = ['B',
+                        'V',
+                        'R',
+                        'I',
+                        'L']
+        target = observation['target']
+        constraints = observation['constraints']
+        for filter in observation['filters']:
+            if filter in self.filters:
+                schedule = etree.Element('Schedule')
+                device = etree.SubElement(schedule, 'Device', name=observation['instrument'], type='polarimeter')
+                etree.SubElement(device, 'SpectralRegion').text = 'optical'
+                setup = etree.SubElement(device, 'Setup')
+                etree.SubElement(setup, 'Filter', type=str(filter))
+                etree.SubElement(setup, 'Device', rotorSpeed=observation['filters'][filter]['rot_speed'], type='half-wave_plate')
+                exposure = etree.SubElement(schedule, 'Exposure', count='1')
                 etree.SubElement(exposure, 'Value', units='seconds'). text = observation['filters'][filter]['exp_time']
                 schedule.append(self._build_target(target))
                 for const in self._build_constraints(constraints):
@@ -255,13 +287,15 @@ class LTObs():
                 self._build_inst_schedule_Sprat(observation, payload)
             elif observation['instrument'] == 'Frodo':
                 self._build_inst_schedule_Frodo(observation, payload)
+            elif observation['instrument'] =='Moptop':
+                self._build_inst_schedule_Moptop(observation, payload)
             else:
                 return ['fail', 'Instrument ' + observation['instrument'] + ' not supported']
 
         full_payload = etree.tostring(payload, encoding="unicode", pretty_print=True)
         headers = {
-            'Username': self.settings['username'],
-            'Password': self.settings['password']
+            'Username': self.settings['rtmluser'],
+            'Password': self.settings['rtmlpass']
         }
         url = '{0}://{1}:{2}/node_agent2/node_agent?wsdl'.format('http', self.settings['LT_HOST'], self.settings['LT_PORT'])
         client = Client(url=url, headers=headers)
@@ -328,8 +362,8 @@ class LTObs():
         cancel = etree.tostring(cancel_payload, encoding='unicode', pretty_print=True)
 
         headers = {
-            'Username': self.settings['username'],
-            'Password': self.settings['password']
+            'Username': self.settings['rtmluser'],
+            'Password': self.settings['rtmlpass']
         }
         url = '{0}://{1}:{2}/node_agent2/node_agent?wsdl'.format('http',
                                                                  self.settings['LT_HOST'], self.settings['LT_PORT'])

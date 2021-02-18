@@ -2,5 +2,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.RTML
+*.rtml
 *.pkl
 test.py
+*.jpg
+*.fits
+*.FITS
