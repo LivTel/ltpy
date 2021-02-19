@@ -5,7 +5,7 @@ example.py - Example dictionaries for sending observations to the Liverpool tele
 """
 
 # Settings Dictionary
-settings = {
+obs_settings = {
     'username': '',  # RTML_username (Must be same as Phase2 username!)
     'rtmlpass': '',  # RTML_password
     'datapass': '',  # Data Archive Password
@@ -122,6 +122,8 @@ observationFrodo = {
     'res_Red': 'high',         # Red Spectral Resolution, ['high', 'low']
 }
 
+# Initiate the observation object
+obs = LTObs(obs_settings)
 
 # Send observations to telescope, getting uid and error back.
 # Shown is a group with a single IOO observation.
