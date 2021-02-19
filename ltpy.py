@@ -23,9 +23,9 @@ else:
         level=settings.LOG_LEVEL,
         format='%(asctime)s: %(levelname)s: %(message)s')
 
-    LT_XML_NS = 'http://www.rtml.org/v3.1a'
-    LT_XSI_NS = 'http://www.w3.org/2001/XMLSchema-instance'
-    LT_SCHEMA_LOCATION = 'http://www.rtml.org/v3.1a http://telescope.livjm.ac.uk/rtml/RTML-nightly.xsd'
+LT_XML_NS = 'http://www.rtml.org/v3.1a'
+LT_XSI_NS = 'http://www.w3.org/2001/XMLSchema-instance'
+LT_SCHEMA_LOCATION = 'http://www.rtml.org/v3.1a http://telescope.livjm.ac.uk/rtml/RTML-nightly.xsd'
 
 
 class LTObs():
@@ -492,16 +492,13 @@ class LTDat():
     Uses the OC_Search HTTP / XML interface of the LT Data Archive
     """
 
-    # URLBASE is the endpoint of the request
-    URLBASE = 'https://telescope.livjm.ac.uk/cgi-bin/oc_search_sci'
-
     def __init__(self, obs_settings):
         """
         Loads Observation Settings and checks for any missing
         information within the obs settings dict
         """
         self.obs_settings = obs_settings
-        self.pickle = settings.PKLFILE + '.pkl'
+        self.pickle_file = settings.PKLFILE + '.pkl'
         for k, v in self.obs_settings.items():
             if v == '':
                 log.error('Unpopulated value in Settings Dict: {}'.format(k))
@@ -512,7 +509,7 @@ class LTDat():
         Make request using the user credentals to the DataArchive
         Return a dictionary of the XML response
         """
-        request = (self.URLBASE + '?'
+        request = (settings.URL_BASE + '?'
                   + 'op-centre=' + self.obs_settings['tag']
                   + '&user-id=' + self.obs_settings['datauser']
                   + '&proposal-id=' + self.obs_settings['proposal']
