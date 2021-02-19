@@ -1,4 +1,4 @@
-import ltrtml
+import ltpy
 
 """
 example.py - Example dictionaries for sending observations to the Liverpool telescope
