@@ -1,4 +1,4 @@
-# ltrtml - Python module for sending observations to the Liverpool Telescope
+# ltpy - Python module for sending observations to the Liverpool Telescope and retreiving data back
 
 ## About
 This module allows a pythonic way to;
