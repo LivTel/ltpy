@@ -30,6 +30,8 @@ pip install -r requirements.txt
 ```
 ## Usage
 
+Settings.py allows you to set the module settings
+
 The structure of using ltrtml module is by creating 4 dictionary structures;
 * `settings` -  holds RTML login, proposal and IP connection settings
 * `constraints` - holds observing and timing constraints.
