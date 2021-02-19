@@ -10,12 +10,18 @@ import logging as log
 
 import json
 
-
-log.basicConfig(
-    level=log.DEBUG,
-    format='%(asctime)s: %(levelname)s: %(message)s')
+import settings
 
 
+if settings.LOG_TYPE == 'file':
+    log.basicConfig(
+        filename=settings.LOG_FILE,
+        level=settings.LOG_LEVEL,
+        format='%(asctime)s: %(levelname)s: %(message)s')
+else:
+    log.basicConfig(
+        level=settings.LOG_LEVEL,
+        format='%(asctime)s: %(levelname)s: %(message)s')
 
 class LTObs():
     """
@@ -27,16 +33,16 @@ class LTObs():
     LT_XSI_NS = 'http://www.w3.org/2001/XMLSchema-instance'
     LT_SCHEMA_LOCATION = 'http://www.rtml.org/v3.1a http://telescope.livjm.ac.uk/rtml/RTML-nightly.xsd'
 
-    def __init__(self, settings):
+    def __init__(self, obs_settings):
         """
-        Loads Settings and checks for any missing
-        information within the settings dict
+        Loads Obsservation Settings and checks for any missing
+        information within the dictionary
         """
-        self.settings = settings
-        self.pickleFile = settings['PKLFILE'] + '.pkl'
-        for k, v in self.settings.items():
+        self.obs_settings = obs_settings
+        self.pickle_file = settings.PKLFILE + '.pkl'
+        for k, v in self.obs_settings.items():
             if v == '':
-                log.error('Unpopulated value in Settings Dict: {}'.format(k))
+                log.error('Unpopulated value in Obs Settings Dict: {}'.format(k))
                 exit()
 
     def _build_prolog(self):
@@ -55,7 +61,7 @@ class LTObs():
             {schemaLocation: LT_SCHEMA_LOCATION},
             xmlns=LT_XML_NS,
             mode='request',
-            uid=self.settings['prefix'] + '_' + format(str(int(time.time()))),
+            uid=self.obs_settings['prefix'] + '_' + format(str(int(time.time()))),
             version='3.1a',
             nsmap=namespaces)
 
@@ -63,10 +69,12 @@ class LTObs():
         """
         Adds the details of user, proposal to the payload
         """
-        project = etree.Element('Project', ProjectID=self.settings['proposal'])
+        project = etree.Element(
+            'Project',
+            ProjectID=self.obs_settings['proposal'])
         contact = etree.SubElement(project, 'Contact')
-        etree.SubElement(contact, 'Username').text = self.settings['username']
-        etree.SubElement(contact, 'Name').text = ''
+        etree.SubElement(contact, 'Username').text=self.obs_settings['username']
+        etree.SubElement(contact, 'Name').text=self.obs_settings['username']
         payload.append(project)
 
     def _build_inst_schedule_IOI(self, observation, payload):
@@ -357,6 +365,7 @@ class LTObs():
             elif observation['instrument'] =='Moptop':
                 self._build_inst_schedule_Moptop(observation, payload)
             else:
+                log.error('Instrument {} is not valid'.format(observation['instrument']))
                 return ['fail', 'Instrument ' + observation['instrument'] + ' not supported']
 
         full_payload = etree.tostring(
@@ -365,26 +374,28 @@ class LTObs():
             pretty_print=True)
 
         headers = {
-            'Username': self.settings['username'],
-            'Password': self.settings['rtmlpass']
+            'Username': self.obs_settings['username'],
+            'Password': self.obs_settings['rtmlpass']
         }
         url = '{0}://{1}:{2}/node_agent2/node_agent?wsdl'.format(
             'http',
-            self.settings['LT_HOST'],
-            self.settings['LT_PORT'])
+            settings.LT_HOST,
+            settings.LT_PORT)
 
         client = Client(url=url, headers=headers)
+        log.info('Sending Observation to Telescope')
         try:
             # Send payload, and receive response string.
             # Removing the encoding tag which causes issue with lxml parsin
             response = client.service.handle_rtml(full_payload).replace('encoding="ISO-8859-1"', '')
         except suds.WebFault:
+            log.error('Suds webfault encountered. Probably bad credentials')
             return ['fail', 'Connection Error: Check credentials?']
 
         response_rtml = etree.fromstring(response)
         mode = response_rtml.get('mode')
         uid = response_rtml.get('uid')
-        if self.settings['DEBUG'] is True:
+        if settings['SAVE_RTML'] is True:
             f = open(uid + '.RTML', "w")
             f.write(full_payload)
             f.write(response)
@@ -430,10 +441,10 @@ class LTObs():
         project = etree.SubElement(
             cancel_payload,
             'Project',
-            ProjectID=self.settings['proposal'])
+            ProjectID=self.obs_settings['proposal'])
 
         contact = etree.SubElement(project, 'Contact')
-        etree.SubElement(contact, 'Username').text = self.settings['username']
+        etree.SubElement(contact, 'Username').text = self.obs_settings['username']
         etree.SubElement(contact, 'Name').text = ''
         etree.SubElement(contact, 'Communication')
         cancel = etree.tostring(
@@ -442,13 +453,13 @@ class LTObs():
             pretty_print=True)
 
         headers = {
-            'Username': self.settings['rtmluser'],
-            'Password': self.settings['rtmlpass']
+            'Username': self.obs_settings['rtmluser'],
+            'Password': self.obs_settings['rtmlpass']
         }
         url = '{0}://{1}:{2}/node_agent2/node_agent?wsdl'.format(
             'http',
-            self.settings['LT_HOST'],
-            self.settings['LT_PORT'])
+            settings.LT_HOST,
+            settings.LT_PORT)
 
         client = Client(url=url, headers=headers)
         # Send cancel_payload, and receive response string, removing the encoding tag which causes issue with lxml parsing
@@ -459,7 +470,7 @@ class LTObs():
         response_rtml = etree.fromstring(response)
         mode = response_rtml.get('mode')
         uid = response_rtml.get('uid')
-        if self.settings['DEBUG']:
+        if settings.SAVE_RTML:
             f = open(uid + '_cancel.RTML', "w")
             f.write(cancel)
             f.write(response)
@@ -483,14 +494,14 @@ class LTDat():
     # URLBASE is the endpoint of the request
     URLBASE = 'https://telescope.livjm.ac.uk/cgi-bin/oc_search_sci'
 
-    def __init__(self, settings):
+    def __init__(self, obs_settings):
         """
-        Loads Settings and checks for any missing
-        information within the settings dict
+        Loads Observation Settings and checks for any missing
+        information within the obs settings dict
         """
-        self.settings = settings
-        self.pickle = settings['PKLFILE'] + '.pkl'
-        for k, v in self.settings.items():
+        self.obs_settings = obs_settings
+        self.pickle = settings.PKLFILE + '.pkl'
+        for k, v in self.obs_settings.items():
             if v == '':
                 log.error('Unpopulated value in Settings Dict: {}'.format(k))
                 exit()
