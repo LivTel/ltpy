@@ -23,15 +23,16 @@ else:
         level=settings.LOG_LEVEL,
         format='%(asctime)s: %(levelname)s: %(message)s')
 
+    LT_XML_NS = 'http://www.rtml.org/v3.1a'
+    LT_XSI_NS = 'http://www.w3.org/2001/XMLSchema-instance'
+    LT_SCHEMA_LOCATION = 'http://www.rtml.org/v3.1a http://telescope.livjm.ac.uk/rtml/RTML-nightly.xsd'
+
+
 class LTObs():
     """
     LT Observation Class to create and send Observation Groups
     to the Liverpool telescope using an RTML Payload over a SOAP connection
     """
-
-    LT_XML_NS = 'http://www.rtml.org/v3.1a'
-    LT_XSI_NS = 'http://www.w3.org/2001/XMLSchema-instance'
-    LT_SCHEMA_LOCATION = 'http://www.rtml.org/v3.1a http://telescope.livjm.ac.uk/rtml/RTML-nightly.xsd'
 
     def __init__(self, obs_settings):
         """
@@ -395,7 +396,7 @@ class LTObs():
         response_rtml = etree.fromstring(response)
         mode = response_rtml.get('mode')
         uid = response_rtml.get('uid')
-        if settings['SAVE_RTML'] is True:
+        if settings.SAVE_RTML is True:
             f = open(uid + '.RTML', "w")
             f.write(full_payload)
             f.write(response)
@@ -403,13 +404,13 @@ class LTObs():
         if mode == 'reject':
             return ['fail', 'Rejected Submission']
         elif mode == 'confirm':
-            if os.path.exists(self.pickleFile):
-                with open(self.pickleFile, "rb") as rp:
+            if os.path.exists(self.pickle_file):
+                with open(self.pickle_file, "rb") as rp:
                     uids = pickle.load(rp)
             else:
                 uids = []
             uids.append(uid)
-            with open(self.pickleFile, "wb") as wp:
+            with open(self.pickle_file, "wb") as wp:
                 pickle.dump(uids, wp)
         return (uid, '')
 
@@ -417,7 +418,7 @@ class LTObs():
         """
         Returns a tuple of uids submitted to the telescope
         """
-        with open(self.pickle, "rb") as uids:
+        with open(self.pickle_file, "rb") as uids:
             uids = pickle.load(uids)
             return uids
 
@@ -429,7 +430,7 @@ class LTObs():
             'xsi': LT_XSI_NS,
         }
         schemaLocation = etree.QName(LT_XSI_NS, 'schemaLocation')
-        with open(self.pickle, "rb") as rp:
+        with open(self.pickle_file, "rb") as rp:
             all_uids = pickle.load(rp)
         cancel_payload = etree.Element('RTML',
                                        {schemaLocation: LT_SCHEMA_LOCATION},
@@ -453,7 +454,7 @@ class LTObs():
             pretty_print=True)
 
         headers = {
-            'Username': self.obs_settings['rtmluser'],
+            'Username': self.obs_settings['username'],
             'Password': self.obs_settings['rtmlpass']
         }
         url = '{0}://{1}:{2}/node_agent2/node_agent?wsdl'.format(
@@ -512,9 +513,9 @@ class LTDat():
         Return a dictionary of the XML response
         """
         request = (self.URLBASE + '?'
-                  + 'op-centre=' + self.settings['tag']
-                  + '&user-id=' + self.settings['datauser']
-                  + '&proposal-id=' + self.settings['proposal']
+                  + 'op-centre=' + self.obs_settings['tag']
+                  + '&user-id=' + self.obs_settings['datauser']
+                  + '&proposal-id=' + self.obs_settings['proposal']
                   + '&group-id=' + uid)
         try:
             response = requests.get(request)
@@ -550,7 +551,7 @@ class LTDat():
 
         for observation in dict['observation']:
             r = requests.get(observation['file-hfit']['#text'],
-                auth=(self.settings['proposal'], self.settings['datapass']))
+                auth=(self.obs_settings['proposal'], self.obs_settings['datapass']))
 
             filename = observation['expid'] + '.fits'
             open(filename, 'wb').write(r.content)
