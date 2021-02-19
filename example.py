@@ -123,7 +123,7 @@ observationFrodo = {
 }
 
 # Initiate the observation object
-obs = LTObs(obs_settings)
+obs = ltpy.LTObs(obs_settings)
 
 # Send observations to telescope, getting uid and error back.
 # Shown is a group with a single IOO observation.
