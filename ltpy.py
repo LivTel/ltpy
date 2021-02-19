@@ -6,16 +6,26 @@ from requests.auth import HTTPBasicAuth
 import suds
 from suds.client import Client
 import time
-import logging
-import xmltodict as xd
+import logging as log
+
 import json
+
+
+log.basicConfig(
+    level=log.DEBUG,
+    format='%(asctime)s: %(levelname)s: %(message)s')
+
 
 
 class LTObs():
     """
-    LT Observation Class to create and send Observation Groups to the Liverpool telescope
-    Using and RTML Payload over a SOAP connection
+    LT Observation Class to create and send Observation Groups
+    to the Liverpool telescope using an RTML Payload over a SOAP connection
     """
+
+    LT_XML_NS = 'http://www.rtml.org/v3.1a'
+    LT_XSI_NS = 'http://www.w3.org/2001/XMLSchema-instance'
+    LT_SCHEMA_LOCATION = 'http://www.rtml.org/v3.1a http://telescope.livjm.ac.uk/rtml/RTML-nightly.xsd'
 
     def __init__(self, settings):
         """
@@ -26,7 +36,7 @@ class LTObs():
         self.pickleFile = settings['PKLFILE'] + '.pkl'
         for k, v in self.settings.items():
             if v == '':
-                print('Please enter your: ' + k)
+                log.error('Unpopulated value in Settings Dict: {}'.format(k))
                 exit()
 
     def _build_prolog(self):
@@ -34,21 +44,20 @@ class LTObs():
         Creates the RTML etree and set the headers
         Returns the Top level etree element for addition by other functions
         """
-        LT_XML_NS = 'http://www.rtml.org/v3.1a'
-        LT_XSI_NS = 'http://www.w3.org/2001/XMLSchema-instance'
-        LT_SCHEMA_LOCATION = 'http://www.rtml.org/v3.1a http://telescope.livjm.ac.uk/rtml/RTML-nightly.xsd'
+
 
         namespaces = {
             'xsi': LT_XSI_NS,
         }
         schemaLocation = etree.QName(LT_XSI_NS, 'schemaLocation')
-        return etree.Element('RTML',
-                             {schemaLocation: LT_SCHEMA_LOCATION},
-                             xmlns=LT_XML_NS,
-                             mode='request',
-                             uid=self.settings['prefix'] + '_' + format(str(int(time.time()))),
-                             version='3.1a',
-                             nsmap=namespaces)
+        return etree.Element(
+            'RTML',
+            {schemaLocation: LT_SCHEMA_LOCATION},
+            xmlns=LT_XML_NS,
+            mode='request',
+            uid=self.settings['prefix'] + '_' + format(str(int(time.time()))),
+            version='3.1a',
+            nsmap=namespaces)
 
     def _build_project(self, payload):
         """
@@ -56,19 +65,23 @@ class LTObs():
         """
         project = etree.Element('Project', ProjectID=self.settings['proposal'])
         contact = etree.SubElement(project, 'Contact')
-        etree.SubElement(contact, 'Username').text = self.settings['rtmluser']
+        etree.SubElement(contact, 'Username').text = self.settings['username']
         etree.SubElement(contact, 'Name').text = ''
         payload.append(project)
 
     def _build_inst_schedule_IOI(self, observation, payload):
         """
-        Builds the schedule with the target and constraints attached to be sent to
-        the LT for use of the IO:I instrument
+        Builds the schedule with the target and constraints attached
+        to be sent to the LT for use of the IO:I instrument
         """
         target = observation['target']
         constraints = observation['constraints']
         schedule = etree.Element('Schedule')
-        device = etree.SubElement(schedule, 'Device', name="IO:I", type="camera")
+        device = etree.SubElement(
+            schedule,
+            'Device',
+            name="IO:I",
+            type="camera")
         etree.SubElement(device, 'SpectralRegion').text = 'infrared'
         setup = etree.SubElement(device, 'Setup')
         etree.SubElement(setup, 'Filter', type='H')
@@ -76,8 +89,13 @@ class LTObs():
         binning = etree.SubElement(detector, 'Binning')
         etree.SubElement(binning, 'X', units='pixels').text = '1'
         etree.SubElement(binning, 'Y', units='pixels').text = '1'
-        exposure = etree.SubElement(schedule, 'Exposure', count=observation['exp_count'])
-        etree.SubElement(exposure, 'Value', units='seconds').text = observation['exp_time']
+        exposure = etree.SubElement(schedule,
+            'Exposure',
+            count=observation['exp_count'])
+        etree.SubElement(
+            exposure,
+            'Value',
+            units='seconds').text=observation['exp_time']
         schedule.append(self._build_target(target))
         for const in self._build_constraints(constraints):
             schedule.append(const)
@@ -85,18 +103,22 @@ class LTObs():
 
     def _build_inst_schedule_Sprat(self, observation, payload):
         """
-        Builds the schedule with the target and constraints attached to be sent to
-        the LT for use of the Sprat instrument
+        Builds the schedule with the target and constraints attached
+        to be sent to the LT for use of the Sprat instrument
         """
         target = observation['target']
         constraints = observation['constraints']
         if observation['grating'] == 'red' or observation['grating'] == 'blue':
             pass
         else:
-            print('Enter either "red" or "blue" in grating')
+            log.error('Enter either "red" or "blue" in grating')
             exit()
         schedule = etree.Element('Schedule')
-        device = etree.SubElement(schedule, 'Device', name="Sprat", type="spectrograph")
+        device = etree.SubElement(
+            schedule,
+            'Device',
+            name="Sprat",
+            type="spectrograph")
         etree.SubElement(device, 'SpectralRegion').text = 'optical'
         setup = etree.SubElement(device, 'Setup')
         etree.SubElement(setup, 'Grating', name=observation['grating'])
@@ -104,8 +126,14 @@ class LTObs():
         binning = etree.SubElement(detector, 'Binning')
         etree.SubElement(binning, 'X', units='pixels').text = '1'
         etree.SubElement(binning, 'Y', units='pixels').text = '1'
-        exposure = etree.SubElement(schedule, 'Exposure', count=observation['exp_count'])
-        etree.SubElement(exposure, 'Value', units='seconds').text = observation['exp_time']
+        exposure = etree.SubElement(
+            schedule,
+            'Exposure',
+            count=observation['exp_count'])
+        etree.SubElement(
+            exposure,
+            'Value',
+            units='seconds').text = observation['exp_time']
         schedule.append(self._build_target(target))
         for const in self._build_constraints(constraints):
             schedule.append(const)
@@ -113,44 +141,62 @@ class LTObs():
 
     def _build_inst_schedule_IOO(self, observation, payload):
         """
-        Builds the schedule with the target and constraints attached to be sent to
-        the LT for use of the multi-filter IO:O instrument
+        Builds the schedule with the target and constraints attached
+        to be sent to the LT for use of the multi-filter IO:O instrument
         """
-        self.filters = ['U',
-                        'R',
-                        'G',
-                        'I',
-                        'Z',
-                        'B',
-                        'V',
-                        'Halpha6566',
-                        'Halpha6634',
-                        'Halpha6705',
-                        'Halpha6755',
-                        'Halpha6822']
+        self.filters = [
+            'U',
+            'R',
+            'G',
+            'I',
+            'Z',
+            'B',
+            'V',
+            'Halpha6566',
+            'Halpha6634',
+            'Halpha6705',
+            'Halpha6755',
+            'Halpha6822',
+        ]
+
         target = observation['target']
         constraints = observation['constraints']
         for filter in observation['filters']:
             if filter in self.filters:
                 schedule = etree.Element('Schedule')
-                device = etree.SubElement(schedule, 'Device', name=observation['instrument'], type='camera')
+                device = etree.SubElement(
+                    schedule,
+                    'Device',
+                    name=observation['instrument'],
+                    type='camera')
                 etree.SubElement(device, 'SpectralRegion').text = 'optical'
                 setup = etree.SubElement(device, 'Setup')
                 etree.SubElement(setup, 'Filter', type=str(filter))
                 detector = etree.SubElement(setup, 'Detector')
                 binning = etree.SubElement(detector, 'Binning')
-                etree.SubElement(binning, 'X', units='pixels').text = observation['binning']
-                etree.SubElement(binning, 'Y', units='pixels').text = observation['binning']
-                exposure = etree.SubElement(schedule, 'Exposure', count=observation['filters'][filter]['exp_count'])
-                etree.SubElement(exposure, 'Value', units='seconds'). text = observation['filters'][filter]['exp_time']
+                etree.SubElement(
+                    binning,
+                    'X',
+                    units='pixels').text=observation['binning']
+                etree.SubElement(
+                    binning,
+                    'Y',
+                    units='pixels').text=observation['binning']
+                exposure = etree.SubElement(
+                    schedule,
+                    'Exposure',
+                    count=observation['filters'][filter]['exp_count'])
+                etree.SubElement(
+                    exposure,
+                    'Value',
+                    units='seconds').text=observation['filters'][filter]['exp_time']
                 schedule.append(self._build_target(target))
                 for const in self._build_constraints(constraints):
                     schedule.append(const)
                 payload.append(schedule)
             else:
-                print('selected filter/s not available for IO:O.')
-                print('Please select a filter from the provided list.')
-                print(self.filters)
+                log.error('selected filter/s not available for IO:O')
+                log.error('Check filter name and Capitalisation / Case')
                 exit()
 
     def _build_inst_schedule_Moptop(self, observation, payload):
@@ -158,31 +204,44 @@ class LTObs():
         Builds the schedule with the target and constraints attached to be sent to
         the LT for use of the multi-filter IO:O instrument
         """
-        self.filters = ['B',
-                        'V',
-                        'R',
-                        'I',
-                        'L']
+        self.filters = [
+            'B',
+            'V',
+            'R',
+            'I',
+            'L',
+        ]
+
         target = observation['target']
         constraints = observation['constraints']
         for filter in observation['filters']:
             if filter in self.filters:
                 schedule = etree.Element('Schedule')
-                device = etree.SubElement(schedule, 'Device', name=observation['instrument'], type='polarimeter')
+                device = etree.SubElement(
+                    schedule,
+                    'Device',
+                    name=observation['instrument'],
+                    type='polarimeter')
                 etree.SubElement(device, 'SpectralRegion').text = 'optical'
                 setup = etree.SubElement(device, 'Setup')
                 etree.SubElement(setup, 'Filter', type=str(filter))
-                etree.SubElement(setup, 'Device', rotorSpeed=observation['filters'][filter]['rot_speed'], type='half-wave_plate')
+                etree.SubElement(
+                    setup,
+                    'Device',
+                    rotorSpeed=observation['filters'][filter]['rot_speed'],
+                    type='half-wave_plate')
                 exposure = etree.SubElement(schedule, 'Exposure', count='1')
-                etree.SubElement(exposure, 'Value', units='seconds'). text = observation['filters'][filter]['exp_time']
+                etree.SubElement(
+                    exposure,
+                    'Value',
+                    units='seconds').text=observation['filters'][filter]['exp_time']
                 schedule.append(self._build_target(target))
                 for const in self._build_constraints(constraints):
                     schedule.append(const)
                 payload.append(schedule)
             else:
-                print('selected filter/s not available for IO:O.')
-                print('Please select a filter from the provided list.')
-                print(self.filters)
+                log.error('selected filter/s not available for Moptop')
+                log.error('Check filter name and Capitalisation / Case')
                 exit()
 
     def _build_inst_schedule_Frodo(self, observation, payload):
@@ -242,23 +301,31 @@ class LTObs():
         elif constraints['photometric'] == 'no':
             photometric = 'light'
         else:
-            print('Please chose yes or no for photometric')
+            log.error('Please chose yes or no for photometric')
             exit()
         const = etree.Element('Constraints')
-        airmass_const = etree.SubElement(const, 'AirmassConstraint', maximum=str(constraints['air_mass']))
+        airmass_const = etree.SubElement(
+            const,
+            'AirmassConstraint',
+            maximum=str(constraints['air_mass']))
 
         sky_const = etree.SubElement(const, 'SkyConstraint')
-        etree.SubElement(sky_const, 'Flux').text = str(constraints['sky_bright'])
-        etree.SubElement(sky_const, 'Units').text = 'magnitudes/square-arcsecond'
+        etree.SubElement(sky_const, 'Flux').text=str(constraints['sky_bright'])
+        etree.SubElement(sky_const, 'Units').text='magnitudes/square-arcsecond'
 
-        seeing_const = etree.SubElement(const, 'SeeingConstraint',
-                                        maximum=(str(constraints['seeing'])),
-                                        units='arcseconds')
+        seeing_const = etree.SubElement(
+            const,
+            'SeeingConstraint',
+            maximum=(str(constraints['seeing'])),
+            units='arcseconds')
 
         photom_const = etree.SubElement(const, 'ExtinctionConstraint')
         etree.SubElement(photom_const, 'Clouds').text = photometric
 
-        date_const = etree.SubElement(const, 'DateTimeConstraint', type='include')
+        date_const = etree.SubElement(
+            const,
+            'DateTimeConstraint',
+            type='include')
         start = constraints['start_date'] + 'T' + constraints['start_time'] + ':00+00:00'
         end = constraints['end_date'] + 'T' + constraints['end_time'] + ':00+00:00'
         etree.SubElement(date_const, 'DateTimeStart', system='UT', value=start)
@@ -292,15 +359,24 @@ class LTObs():
             else:
                 return ['fail', 'Instrument ' + observation['instrument'] + ' not supported']
 
-        full_payload = etree.tostring(payload, encoding="unicode", pretty_print=True)
+        full_payload = etree.tostring(
+            payload,
+            encoding="unicode",
+            pretty_print=True)
+
         headers = {
-            'Username': self.settings['rtmluser'],
+            'Username': self.settings['username'],
             'Password': self.settings['rtmlpass']
         }
-        url = '{0}://{1}:{2}/node_agent2/node_agent?wsdl'.format('http', self.settings['LT_HOST'], self.settings['LT_PORT'])
+        url = '{0}://{1}:{2}/node_agent2/node_agent?wsdl'.format(
+            'http',
+            self.settings['LT_HOST'],
+            self.settings['LT_PORT'])
+
         client = Client(url=url, headers=headers)
         try:
-            # Send payload, and receive response string, removing the encoding tag which causes issue with lxml parsing
+            # Send payload, and receive response string.
+            # Removing the encoding tag which causes issue with lxml parsin
             response = client.service.handle_rtml(full_payload).replace('encoding="ISO-8859-1"', '')
         except suds.WebFault:
             return ['fail', 'Connection Error: Check credentials?']
@@ -338,9 +414,6 @@ class LTObs():
         """
         Deletes observation with known uid from the telescope.
         """
-        LT_XSI_NS = 'http://www.w3.org/2001/XMLSchema-instance'
-        LT_SCHEMA_LOCATION = 'http://www.rtml.org/v3.1a http://telescope.livjm.ac.uk/rtml/RTML-nightly.xsd'
-
         namespaces = {
             'xsi': LT_XSI_NS,
         }
@@ -354,19 +427,28 @@ class LTObs():
                                        version='3.1a',
                                        nsmap=namespaces
                                        )
-        project = etree.SubElement(cancel_payload, 'Project', ProjectID=self.settings['proposal'])
+        project = etree.SubElement(
+            cancel_payload,
+            'Project',
+            ProjectID=self.settings['proposal'])
+
         contact = etree.SubElement(project, 'Contact')
         etree.SubElement(contact, 'Username').text = self.settings['username']
         etree.SubElement(contact, 'Name').text = ''
         etree.SubElement(contact, 'Communication')
-        cancel = etree.tostring(cancel_payload, encoding='unicode', pretty_print=True)
+        cancel = etree.tostring(
+            cancel_payload,
+            encoding='unicode',
+            pretty_print=True)
 
         headers = {
             'Username': self.settings['rtmluser'],
             'Password': self.settings['rtmlpass']
         }
-        url = '{0}://{1}:{2}/node_agent2/node_agent?wsdl'.format('http',
-                                                                 self.settings['LT_HOST'], self.settings['LT_PORT'])
+        url = '{0}://{1}:{2}/node_agent2/node_agent?wsdl'.format(
+            'http',
+            self.settings['LT_HOST'],
+            self.settings['LT_PORT'])
 
         client = Client(url=url, headers=headers)
         # Send cancel_payload, and receive response string, removing the encoding tag which causes issue with lxml parsing
@@ -410,10 +492,10 @@ class LTDat():
         self.pickle = settings['PKLFILE'] + '.pkl'
         for k, v in self.settings.items():
             if v == '':
-                print('Please enter your: ' + k)
+                log.error('Unpopulated value in Settings Dict: {}'.format(k))
                 exit()
 
-    def make_request(self, uid):
+    def make_oc_request(self, uid):
         """
         Make request using the user credentals to the DataArchive
         Return a dictionary of the XML response
@@ -435,7 +517,7 @@ class LTDat():
         Check if data are available
         Return Boolean
         """
-        dict = self.make_request(uid)
+        dict = self.make_oc_request(uid)
         if dict['number-obs'] == '0':
             return False
         else:
@@ -445,13 +527,13 @@ class LTDat():
         """
         Check if data is available and if so download
         """
-        dict = self.make_request(uid)
+        dict = self.make_oc_request(uid)
 
         if dict['number-obs'] == '0':
             return ['fail', 'No Data available']
 
         elif dict['number-obs'] == '1':
-            # Nest the single observation one level deeper in a single element tuple.
+            # Nest the single observation one level deeper
             # This is to match the structure of multi observation groups
             dict['observation'] = [dict['observation'],]
 

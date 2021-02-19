@@ -6,16 +6,12 @@ example.py - Example dictionaries for sending observations to the Liverpool tele
 
 # Settings Dictionary
 settings = {
-    'username': '',  # RTML_username
-    'password': '',  # RTML_password
+    'username': '',  # RTML_username (Must be same as Phase2 username!)
+    'rtmlpass': '',  # RTML_password
+    'datapass': '',  # Data Archive Password
     'tag': '',       # TAG of Proposal [, 'JMU', 'PATT', 'CAT', 'OPT']
     'proposal': '',  # RTML_proposal name
     'prefix': '',    # Prefix to Group UID
-    'LT_HOST': '',   # IP used to connect to the LT
-    'LT_PORT': '',   # Port used to connect to the LT
-    'PKLFILE': '',   # Name of pickle file for storing observation information
-    'DATADIR': '',   # Path to the directory for storing data.
-    'DEBUG': False,  # Store all RTML responses for debugging, [True, False]
 }
 
 # Target Dictionary
@@ -126,12 +122,10 @@ observationFrodo = {
     'res_Red': 'high',         # Red Spectral Resolution, ['high', 'low']
 }
 
-# Create observation object
-obs = ltrtml.LTObs(settings)
 
 # Send observations to telescope, getting uid and error back.
 # Shown is a group with a single IOO observation.
-uid, error = obs.submit_group([observationIOO], constraints)
+uid, error = obs.submit_group([observationMoptop], constraints)
 if error:
     print(error)
 else:
