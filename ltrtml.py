@@ -340,8 +340,6 @@ class LTObs():
             'xsi': LT_XSI_NS,
         }
         schemaLocation = etree.QName(LT_XSI_NS, 'schemaLocation')
-        with open(self.pickle, "rb") as rp:
-            all_uids = pickle.load(rp)
         cancel_payload = etree.Element('RTML',
                                        {schemaLocation: LT_SCHEMA_LOCATION},
                                        mode='abort',
@@ -380,8 +378,10 @@ class LTObs():
         if mode == 'reject':
             return ['Cancel Failed for ' + uid]
         elif mode == 'confirm':
+            with open(self.pickle, "rb") as rp:
+                all_uids = pickle.load(rp)
             if uid in all_uids:
                 all_uids.remove(uid)
-                with open("LT_uids.pkl", "wb") as cancelled:
+                with open(self.pickle, "wb") as cancelled:
                     pickle.dump(all_uids, cancelled)
             return []
