@@ -6,14 +6,14 @@ example.py - Example dictionaries for sending observations to the Liverpool tele
 
 # Settings Dictionary
 settings = {
-    'username': '',  # RTML_username
-    'password': '',  # RTML_password
-    'project': '',   # RTML_proposal name
-    'prefix': '',    # Prefix to Group UID
-    'LT_HOST': '',   # IP used to connect to the LT
-    'LT_PORT': '',   # Port used to connect to the LT
-    'DEBUG': False,  # Store all RTML responses for debugging, [True, False]
-    'PKLFILE': '',   # Name of pickle file for storing observations
+    'username': '',      # RTML_username
+    'rtmlpass': '',      # RTML_password
+    'proposal': '',      # RTML_proposal name
+    'prefix': '',        # Prefix to Group UID
+    'LT_HOST': '',       # IP used to connect to the LT
+    'LT_PORT': '',       # Port used to connect to the LT
+    'PKLFILE': 'pickle', # Name of picklefile for storing observations
+    'DEBUG': False,      # Store all RTML responses for debugging, [True, False]
 }
 
 target1 = {
@@ -133,12 +133,7 @@ else:
     print(uid, ' sucessfully sent to telescope')
 
 
-# Cancel an observation
-error = obs.cancel_group(uid)
-if error:
-    print(error)
-else:
-    print('Successfully deleted observation ', uid)
+
 
 # List current uids which have been submitted to the telescope
 print(obs.get_uids())

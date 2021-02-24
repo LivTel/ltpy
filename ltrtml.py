@@ -51,7 +51,7 @@ class LTObs():
         """
         project = etree.Element('Project', ProjectID=self.settings['proposal'])
         contact = etree.SubElement(project, 'Contact')
-        etree.SubElement(contact, 'Username').text = self.settings['rtmluser']
+        etree.SubElement(contact, 'Username').text = self.settings['username']
         etree.SubElement(contact, 'Name').text = ''
         payload.append(project)
 
@@ -289,7 +289,7 @@ class LTObs():
 
         full_payload = etree.tostring(payload, encoding="unicode", pretty_print=True)
         headers = {
-            'Username': self.settings['rtmluser'],
+            'Username': self.settings['username'],
             'Password': self.settings['rtmlpass']
         }
         url = '{0}://{1}:{2}/node_agent2/node_agent?wsdl'.format('http', self.settings['LT_HOST'], self.settings['LT_PORT'])
@@ -357,7 +357,7 @@ class LTObs():
         cancel = etree.tostring(cancel_payload, encoding='unicode', pretty_print=True)
 
         headers = {
-            'Username': self.settings['rtmluser'],
+            'Username': self.settings['username'],
             'Password': self.settings['rtmlpass']
         }
         url = '{0}://{1}:{2}/node_agent2/node_agent?wsdl'.format('http',
