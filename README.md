@@ -57,13 +57,14 @@ The settings dictionary should be structured as follows and the object initiated
 import ltrtml
 
 settings = {
-    'username': '',  # RTML_username
-    'password': '',  # RTML_password
-    'project': '',   # RTML_project name
-    'prefix': '',    # Prefix to Group uid
-    'LT_HOST': '',   # IP used to connect to the LT
-    'LT_PORT': '',   # Port used to connect to the LT
-    'DEBUG': False,  # Store all RTML responses for debugging, [True, False]
+    'username': '',      # RTML_username
+    'rtmlpass': '',      # RTML_password
+    'proposal': '',      # RTML_proposal name
+    'prefix': '',        # Prefix to Group UID
+    'LT_HOST': '',       # IP used to connect to the LT
+    'LT_PORT': '',       # Port used to connect to the LT
+    'PKLFILE': 'pickle', # Name of picklefile for storing observations
+    'DEBUG': False,      # Store all RTML responses for debugging, [True, False]
 }
 
 
