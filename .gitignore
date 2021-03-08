@@ -8,4 +8,5 @@ test.py
 *.jpg
 *.fits
 *.FITS
+
 settings.py

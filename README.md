@@ -56,20 +56,19 @@ The module creates an LTObservation object that is initiated with a settings dic
 
 The settings dictionary should be structured as follows and the object initiated by passing the settings;
 ```python
-import ltrtml
+import ltpy
 
-settings = {
-    'username': '',  # RTML_username
-    'password': '',  # RTML_password
-    'project': '',   # RTML_project name
-    'prefix': '',    # Prefix to Group uid
-    'LT_HOST': '',   # IP used to connect to the LT
-    'LT_PORT': '',   # Port used to connect to the LT
-    'DEBUG': False,  # Store all RTML responses for debugging, [True, False]
+obs_settings = {
+  'username': '',  # RTML username (Needs to be same as Phase 2)
+  'rtmlword': '',  # RTML_password
+  'tag': '',       # TAG of Proposal ['JMU', 'PATT', 'CAT', 'OPT']
+  'proposal': '',  # RTML_proposal name
+  'prefix': '',    # Prefix to Group UID
+
 }
 
 
-obs_object = ltrtml.LTObs(settings)
+obs_object = ltpy.LTObs(obs_settings)
 ```
 
 #### Debug mode

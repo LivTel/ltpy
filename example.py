@@ -9,7 +9,7 @@ obs_settings = {
     'username': '',  # RTML_username (Must be same as Phase2 username!)
     'rtmlpass': '',  # RTML_password
     'datapass': '',  # Data Archive Password
-    'tag': '',       # TAG of Proposal [, 'JMU', 'PATT', 'CAT', 'OPT']
+    'tag': '',       # TAG of Proposal ['JMU', 'PATT', 'CAT', 'OPT']
     'proposal': '',  # RTML_proposal name
     'prefix': '',    # Prefix to Group UID
 }
@@ -41,7 +41,7 @@ constraints = {
 }
 
 # IOO Example observation with target1
-observationIOO = {
+obs_IOO = {
     'instrument': 'IO:O',
     'target': target1,
     'filters': {'R': {'exp_time': '60',  # Exposure time in seconds
@@ -73,7 +73,7 @@ ioo_filters = ['U',
 
 # Moptop Example observation with target1
 # See https://telescope.livjm.ac.uk/TelInst/Inst/MOPTOP/
-observationMoptop = {
+obs_Moptop = {
     'instrument': 'Moptop',
     'target': target1,
     'filters': {'V': {'exp_time': '300',    # Exposure time in seconds
@@ -93,7 +93,7 @@ mop_filters = ['B',
                'L']
 
 # IO:I example observation with target1
-observationIOI = {
+obs_IOI = {
     'target': target1,
     'instrument': 'IO:I',  # Single H-band filter instrument
     'exp_time': '120.0',   # Image exposure time for target
@@ -102,7 +102,7 @@ observationIOI = {
 
 
 # Sprat example observation with target1
-observationSprat = {
+obs_Sprat = {
     'target': target1,
     'instrument': 'Sprat',
     'exp_time': '120.0',  # Image exposure time for target
@@ -111,7 +111,7 @@ observationSprat = {
 }
 
 # FRODOspec example observation with target1
-observationFrodo = {
+obs_Frodo = {
     'target': target1,
     'instrument': 'Frodo',
     'exp_time_Blue': '120.0',  # Image exposure time for blue arm
@@ -127,7 +127,7 @@ obs = ltpy.LTObs(obs_settings)
 
 # Send observations to telescope, getting uid and error back.
 # Shown is a group with a single IOO observation.
-uid, error = obs.submit_group([observationMoptop], constraints)
+uid, error = obs.submit_group([obsMoptop, obs_IOO], constraints)
 if error:
     print(error)
 else:
