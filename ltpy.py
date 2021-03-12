@@ -39,6 +39,7 @@ class LTObs():
         Loads Obsservation Settings and checks for any missing
         information within the dictionary
         """
+        log.debug('Initiating LTObs object')
         self.obs_settings = obs_settings
         self.pickle_file = settings.PKLFILE + '.pkl'
         for k, v in self.obs_settings.items():
@@ -51,8 +52,6 @@ class LTObs():
         Creates the RTML etree and set the headers
         Returns the Top level etree element for addition by other functions
         """
-
-
         namespaces = {
             'xsi': LT_XSI_NS,
         }
@@ -206,7 +205,6 @@ class LTObs():
             else:
                 log.error('selected filter/s not available for IO:O')
                 log.error('Check filter name and Capitalisation / Case')
-                exit()
 
     def _build_inst_schedule_Moptop(self, observation, payload):
         """
@@ -310,7 +308,7 @@ class LTObs():
         elif constraints['photometric'] == 'no':
             photometric = 'light'
         else:
-            log.error('Please chose yes or no for photometric')
+            log.error('Please choose yes or no for photometric')
             exit()
         const = etree.Element('Constraints')
         airmass_const = etree.SubElement(
