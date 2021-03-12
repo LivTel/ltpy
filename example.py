@@ -11,7 +11,7 @@ obs_settings = {
     'datapass': '',  # Data Archive Password
     'tag': '',       # TAG of Proposal ['JMU', 'PATT', 'CAT', 'OPT']
     'proposal': '',  # RTML_proposal name
-    'prefix': '',    # Prefix to Group UID
+    'prefix': 'LTPY',    # Prefix to Group UID, feel free to change.
 }
 
 # Target Dictionary
@@ -127,7 +127,7 @@ obs = ltpy.LTObs(obs_settings)
 
 # Send observations to telescope, getting uid and error back.
 # Shown is a group with a single IOO observation.
-uid, error = obs.submit_group([obsMoptop, obs_IOO], constraints)
+uid, error = obs.submit_group([obs_Moptop, obs_IOO], constraints)
 if error:
     print(error)
 else:
