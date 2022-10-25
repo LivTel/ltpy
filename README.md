@@ -102,12 +102,14 @@ constraints = {
     'sky_bright': '1.0',          # Maximum allowable Sky Brightness, Dark + X magnitudes
     'seeing': '1.2',              # Maximum allowable FWHM seeing in arcsec
     'photometric': 'yes',         # Photometric conditions, ['yes', 'no']
-    'start_date': '2020-02-18',   # Start Date 'YYYY-MM-DD'
-    'start_time': '18:00:00.00',  # Start Time 'HH:MM:SS.SS'
-    'end_date': '2020-02-280',    # End Date 'YYYY-MM-DD'
-    'end_time': '00:00:00.00',    # End Time 'HH:MM:SS.SS'
+    'start_date': '2022-10-25',   # Start Date 'YYYY-MM-DD'
+    'start_time': '18:00:00',     # Start Time 'HH:MM:SS'
+    'end_date': '2022-10-26',     # End Date 'YYYY-MM-DD'
+    'end_time': '07:00:00',       # End Time 'HH:MM:SS'
 }
 ```
+
+The 'start_date'/'start_time' and 'end_date'/'end_time' constraints are specified in UTC (Coordinated Universal Time).
 
 ### Creating `observations`
 Observations specify one of the set up targets. They then specify the instrument and configuration, along with details of the exposure.

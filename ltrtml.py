@@ -254,8 +254,8 @@ class LTObs():
         etree.SubElement(photom_const, 'Clouds').text = photometric
 
         date_const = etree.SubElement(const, 'DateTimeConstraint', type='include')
-        start = constraints['start_date'] + 'T' + constraints['start_time'] + ':00+00:00'
-        end = constraints['end_date'] + 'T' + constraints['end_time'] + ':00+00:00'
+        start = constraints['start_date'] + 'T' + constraints['start_time'] + '+00:00'
+        end = constraints['end_date'] + 'T' + constraints['end_time'] + '+00:00'
         etree.SubElement(date_const, 'DateTimeStart', system='UT', value=start)
         etree.SubElement(date_const, 'DateTimeEnd', system='UT', value=end)
         return [airmass_const, sky_const, seeing_const, photom_const, date_const]
