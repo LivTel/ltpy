@@ -103,9 +103,9 @@ constraints = {
     'seeing': '1.2',              # Maximum allowable FWHM seeing in arcsec
     'photometric': 'yes',         # Photometric conditions, ['yes', 'no']
     'start_date': '2022-10-25',   # Start Date 'YYYY-MM-DD'
-    'start_time': '18:00:00',     # Start Time 'HH:MM:SS'
+    'start_time': '18:00:00',     # Start Time 'HH:MM:SS' must be in UTC
     'end_date': '2022-10-26',     # End Date 'YYYY-MM-DD'
-    'end_time': '07:00:00',       # End Time 'HH:MM:SS'
+    'end_time': '07:00:00',       # End Time 'HH:MM:SS' must be in UTC
 }
 ```
 
